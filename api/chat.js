@@ -1,51 +1,55 @@
-// api/chat.js
-export default async function handler(req, res) {
-  // Allow only POST requests
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+// chat.js
+import express from "express";
+import fetch from "node-fetch";
+import cors from "cors";
+import dotenv from "dotenv";
 
+dotenv.config();
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const GROQ_API_KEY = process.env.GROQ_API_KEY; // Apni Groq API key .env file me daalo
+
+app.post("/chat", async (req, res) => {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-
-    // Check if API key is set
-    if (!apiKey) {
-      return res.status(500).json({ error: "OpenAI API key is missing in server environment" });
-    }
-
     const { message } = req.body;
 
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({ error: "Invalid request: 'message' must be a non-empty string" });
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
     }
 
-    // Call OpenAI API
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // Or "gpt-4" if your API key supports it
-        messages: [{ role: "user", content: message }],
+        model: "llama3-8b-8192", // Groq ka fast model
+        messages: [
+          { role: "system", content: "You are a helpful assistant." },
+          { role: "user", content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return res.status(response.status).json({ error: `OpenAI API error: ${errorText}` });
-    }
-
     const data = await response.json();
 
-    // Extract reply
-    const reply = data.choices?.[0]?.message?.content || "No response from AI";
+    if (data.error) {
+      return res.status(500).json({ error: data.error.message });
+    }
 
-    res.status(200).json({ reply });
+    const botReply = data.choices[0]?.message?.content || "No response";
+    res.json({ reply: botReply });
 
   } catch (error) {
-    // Always return JSON on error
-    res.status(500).json({ error: error.message || "Internal server error" });
+    console.error("Error:", error);
+    res.status(500).json({ error: "Something went wrong" });
   }
-}
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
