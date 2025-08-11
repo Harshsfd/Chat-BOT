@@ -1,30 +1,49 @@
-import OpenAI from "openai";
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+.chat-container {
+  background: white;
+  padding: 20px;
+  width: 350px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
 
-  const { message } = req.body;
+#chat-box {
+  height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+}
 
-  if (!message) {
-    return res.status(400).json({ error: "Message is required" });
-  }
+.user-msg {
+  text-align: right;
+  color: blue;
+  margin: 5px 0;
+}
 
-  try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+.bot-msg {
+  text-align: left;
+  color: green;
+  margin: 5px 0;
+}
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: message }],
-    });
+.bot-msg.error {
+  color: red;
+}
 
-    const reply = completion.choices?.[0]?.message?.content || "No response";
-    res.status(200).json({ reply });
-  } catch (error) {
-    console.error("OpenAI API Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Something went wrong" });
-  }
+input {
+  width: 70%;
+  padding: 5px;
+}
+
+button {
+  padding: 5px 10px;
 }
