@@ -35,6 +35,10 @@ body {
   margin: 5px 0;
 }
 
+.bot-msg.error {
+  color: red;
+}
+
 input {
   width: 70%;
   padding: 5px;
