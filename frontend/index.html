@@ -1,175 +1,58 @@
-<!doctype html>
-<html lang="hi">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Chatbot — Demo</title>
-
-  <!-- Tailwind CDN (development/demo). For production use Tailwind build. -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot UI</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
-    .chat-scroll::-webkit-scrollbar { width: 8px; }
-    .chat-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
-    .typing-dots span { display:inline-block; width:6px; height:6px; margin:0 3px; border-radius:9999px; background:#fff; opacity:.6; animation:blink 1s infinite; }
-    @keyframes blink { 0%{ opacity:.2 } 50%{ opacity:1 } 100%{ opacity:.2 } }
-  </style>
+  <link rel="stylesheet" href="./assets/style.css" />
 </head>
-<body class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
+<body class="bg-gray-900 text-white flex flex-col h-screen">
+  <header class="bg-gray-800 p-4 text-lg font-bold text-center">💬 My AI Chatbot</header>
 
-  <!-- NAVBAR -->
-  <nav class="bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-md bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white font-bold">AI</div>
-      <h1 class="text-lg font-semibold">AI Chatbot</h1>
-    </div>
-    <div class="flex items-center gap-2">
-      <button id="clearBtn" class="text-sm px-3 py-1 rounded-md bg-red-100 dark:bg-red-900/40">Clear</button>
-      <button id="themeToggle" class="p-2 rounded-md bg-gray-100 dark:bg-gray-700">🌙</button>
-    </div>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="flex-1 flex flex-col p-4 max-w-3xl mx-auto w-full">
-    <div id="chat" class="flex-1 overflow-y-auto space-y-4 p-4 chat-scroll bg-white dark:bg-gray-800 rounded-xl shadow-inner" aria-live="polite"></div>
-
-    <form id="chatForm" class="mt-4 flex items-end gap-2">
-      <textarea id="input" rows="1" placeholder="Message likho..." required
-        class="flex-1 resize-none p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
-      <button id="send" type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md shadow hover:bg-indigo-700 disabled:opacity-60">Send</button>
-    </form>
+  <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+    <!-- Messages will be added dynamically -->
   </main>
 
+  <footer class="bg-gray-800 p-4 flex gap-2">
+    <input id="user-input" type="text" placeholder="Type your message..." class="flex-1 p-2 rounded bg-gray-700 text-white outline-none" />
+    <button id="send-btn" class="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">Send</button>
+  </footer>
+
   <script>
-    // === CONFIG ===
-    const BACKEND_URL = 'http://localhost:5000'; // <-- change to your deployed backend later
+    const sendBtn = document.getElementById("send-btn");
+    const userInput = document.getElementById("user-input");
+    const chatContainer = document.getElementById("chat-container");
 
-    // === DOM refs ===
-    const chatEl = document.getElementById('chat');
-    const inputEl = document.getElementById('input');
-    const form = document.getElementById('chatForm');
-    const sendBtn = document.getElementById('send');
-    const themeToggle = document.getElementById('themeToggle');
-    const clearBtn = document.getElementById('clearBtn');
-
-    let waiting = false;
-
-    // add a message bubble (safe: use textContent and whitespace-pre-wrap)
-    function addMessage(text, sender = 'bot', { typing = false } = {}) {
-      const outer = document.createElement('div');
-      outer.className = sender === 'user' ? 'flex justify-end' : 'flex justify-start';
-
-      const bubble = document.createElement('div');
-      bubble.className = (sender === 'user'
-        ? 'bg-green-500 text-white'
-        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100') +
-        ' px-4 py-2 rounded-xl max-w-[80%] whitespace-pre-wrap';
-      bubble.style.whiteSpace = 'pre-wrap';
-
-      if (typing) {
-        bubble.classList.add('flex','items-center','gap-2');
-        const dots = document.createElement('div');
-        dots.className = 'typing-dots flex items-center';
-        const s1 = document.createElement('span'), s2 = document.createElement('span'), s3 = document.createElement('span');
-        dots.append(s1, s2, s3);
-        bubble.appendChild(dots);
-      } else {
-        bubble.textContent = text;
-      }
-
-      outer.appendChild(bubble);
-      chatEl.appendChild(outer);
-      chatEl.scrollTop = chatEl.scrollHeight;
-      return { outer, bubble };
+    function addMessage(message, sender) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = sender === "user" ? "text-right" : "text-left";
+      msgDiv.innerHTML = `<span class="${sender === "user" ? "bg-blue-500" : "bg-gray-700"} px-3 py-2 rounded-lg inline-block max-w-xs">${message}</span>`;
+      chatContainer.appendChild(msgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    // replace typing bubble with real text
-    function replaceTyping(wrapper, text) {
-      const bubble = wrapper.querySelector('div');
-      if (bubble) bubble.textContent = text;
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-
-    // save/load history
-    function saveHistory() {
-      const items = Array.from(chatEl.querySelectorAll('div > div')).map(d => ({
-        text: d.textContent,
-        isUser: d.className.includes('bg-green-500')
-      }));
-      localStorage.setItem('chat_history_v1', JSON.stringify(items));
-    }
-    function loadHistory() {
-      const raw = localStorage.getItem('chat_history_v1');
-      if (!raw) return;
-      try {
-        const items = JSON.parse(raw);
-        items.forEach(i => addMessage(i.text, i.isUser ? 'user' : 'bot'));
-      } catch(e) {}
-    }
-
-    // send form
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (waiting) return;
-      const message = inputEl.value.trim();
+    async function sendMessage() {
+      const message = userInput.value.trim();
       if (!message) return;
-      addMessage(message, 'user');
-      inputEl.value = '';
-      waiting = true;
-      sendBtn.disabled = true;
 
-      // show typing indicator
-      const typingNode = addMessage('', 'bot', { typing: true });
+      addMessage(message, "user");
+      userInput.value = "";
 
-      try {
-        const reply = await sendToServer(message);
-        replaceTyping(typingNode.outer, reply);
-        saveHistory();
-      } catch (err) {
-        console.error(err);
-        replaceTyping(typingNode.outer, 'Server se connect nahi hua — console dekho.');
-      } finally {
-        waiting = false;
-        sendBtn.disabled = false;
-        inputEl.focus();
-      }
-    });
-
-    // call backend (with timeout)
-    async function sendToServer(message) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-      const res = await fetch(BACKEND_URL + '/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
-        signal: controller.signal
       });
-      clearTimeout(timeoutId);
-      if (!res.ok) throw new Error('Status ' + res.status);
-      const data = await res.json();
-      // expected shape: { reply: "text" } — adapt if your backend returns different
-      return data.reply || data.choices?.[0]?.message?.content || 'Kuch jawaab nahi mila';
+
+      const data = await response.json();
+      addMessage(data.reply, "bot");
     }
 
-    // theme toggle
-    themeToggle.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      themeToggle.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
     });
-
-    // clear chat
-    clearBtn.addEventListener('click', () => {
-      if (confirm('Chat history clear karein?')) {
-        chatEl.innerHTML = '';
-        localStorage.removeItem('chat_history_v1');
-      }
-    });
-
-    // load saved chat on start
-    loadHistory();
   </script>
 </body>
 </html>
