@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🤖 Stylish Chatbot</title>
+
+  <!-- Inter font for nicer typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+  :root{
+    --bg: #0f1724;
+    --card-bg: rgba(255,255,255,0.04);
+    --muted: rgba(255,255,255,0.6);
+    --accent: linear-gradient(135deg,#6a11cb,#2575fc);
+    --radius: 16px;
+  }
+
+  /* ---------- Base layout ---------- */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    margin:0;
+    background: linear-gradient(180deg,#071021 0%, #0f1724 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    color:#fff;
+  }
+
+  .wrap {
+    width:100%;
+    max-width:960px;
+    display:grid;
+    grid-template-columns: 360px 1fr;
+    gap:28px;
+    align-items:start;
+  }
+
+  /* ---------- Left panel (controls) ---------- */
+  .left {
+    background:var(--card-bg);
+    border-radius:var(--radius);
+    padding:18px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    border:1px solid rgba(255,255,255,0.04);
+  }
+
+  .brand {
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .logo {
+    width:44px;height:44px;border-radius:10px;
+    background:linear-gradient(135deg,#ff6a00,#ee0979);
+    display:flex;align-items:center;justify-content:center;font-weight:700;
+    box-shadow:0 6px 18px rgba(236,72,153,0.15);
+    font-size:18px;
+  }
+  .brand h3{margin:0;font-size:1.05rem}
+  .brand p{margin:0;font-size:0.85rem;color:var(--muted)}
+
+  .theme-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .theme-btn{
+    flex:1;
+    padding:8px 10px;border-radius:10px;border:1px solid transparent;
+    background:transparent;color:var(--muted);cursor:pointer;font-weight:600;
+    transition:all .18s ease;
+  }
+  .theme-btn.active{
+    color:#fff;
+    background:linear-gradient(90deg,#2b2bff35,#6b6bff12);
+    border:1px solid rgba(255,255,255,0.06);
+    transform:translateY(-2px);
+  }
+
+  .prefs{margin-top:18px;font-size:0.9rem;color:var(--muted)}
+  .prefs .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,0.03)}
+  .small{font-size:0.82rem;color:var(--muted)}
+
+  /* ---------- Chat area (right) ---------- */
+  .chat-card {
+    height:80vh;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border-radius:18px;
+    display:flex;flex-direction:column;overflow:hidden;
+    border:1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+  }
+
+  .chat-header {
+    display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.03);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  }
+  .chat-header h2{margin:0;font-size:1.05rem}
+  .sub{color:var(--muted);font-size:0.85rem}
+
+  .messages {
+    flex:1;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:12px;
+    background-image: radial-gradient( circle at 10% 10%, rgba(255,255,255,0.01), transparent 15% );
+  }
+
+  /* bubble base */
+  .msg{max-width:78%;padding:12px 14px;border-radius:14px;line-height:1.4;word-wrap:break-word;box-shadow: 0 6px 20px rgba(2,6,23,0.4);}
+
+  .msg.bot{
+    align-self:flex-start;
+    background: rgba(255,255,255,0.04);
+    color:#e6eef8;border-bottom-left-radius:6px;
+    border:1px solid rgba(255,255,255,0.04);
+  }
+
+  .msg.user{
+    align-self:flex-end;
+    color:#fff;
+    background:linear-gradient(135deg,#6a11cb,#2575fc);
+    border-bottom-right-radius:6px;
+  }
+
+  /* tiny meta line */
+  .meta{font-size:0.75rem;color:var(--muted);margin-top:6px}
+
+  /* input area */
+  .input-area{
+    display:flex;gap:10px;padding:12px;border-top:1px solid rgba(255,255,255,0.03);
+    align-items:center;background:linear-gradient(180deg, transparent, rgba(255,255,255,0.01));
+  }
+  .input-area textarea{
+    resize:none;padding:12px;border-radius:12px;border:none;outline:none;font-size:1rem;
+    flex:1;background:rgba(255,255,255,0.03);color:inherit;height:48px;
+  }
+  .send{
+    display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ff6a00,#ee0979);
+    border:none;padding:10px 14px;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;
+    box-shadow:0 10px 30px rgba(255,105,180,0.12), inset 0 -2px 0 rgba(0,0,0,0.06);
+    transition:transform .12s ease;
+  }
+  .send:hover{transform:translateY(-3px)}
+
+  .hint{font-size:0.85rem;color:var(--muted);padding:8px 0;text-align:center}
+
+  /* ----- THEME: Neumorphism (soft) ----- */
+  .theme-neu body{ --bg: linear-gradient(180deg,#f2f6fb,#e9f0f7); color:#0b1220 }
+  .theme-neu .left{ background: linear-gradient(180deg,#fbfdff,#f0f6fb); color:#0b1220; border: none; box-shadow: 10px 10px 30px rgba(163,177,198,0.18), -10px -10px 30px rgba(255,255,255,0.8) }
+  .theme-neu .chat-card{ background: #eef6fb; color:#0b1220; border:none; box-shadow: 12px 20px 50px rgba(160,180,205,0.12) }
+  .theme-neu .msg.bot{ background:#ffffff; color:#0b1220; border:none; box-shadow: inset 2px 2px 6px rgba(0,0,0,0.03) }
+  .theme-neu .msg.user{ background: linear-gradient(135deg,#cfe9ff,#bfe0ff); color:#052234 }
+  .theme-neu .send{ background: linear-gradient(135deg,#6dd3a9,#34b3e6); color:#052234 }
+  .theme-neu .logo{ background: linear-gradient(135deg,#34b3e6,#6dd3a9); color:#012 }
+
+  /* ----- THEME: Neon (futuristic) ----- */
+  .theme-neon body{ background: radial-gradient(circle at 10% 20%, #02021e 0%, #000414 30%, #040014 100%); color:#e9f0ff }
+  .theme-neon .left{ background: linear-gradient(180deg, rgba(10,10,18,0.7), rgba(10,10,18,0.45)); border:1px solid rgba(120,70,255,0.12) }
+  .theme-neon .chat-card{ background: linear-gradient(180deg, rgba(2,2,16,0.5), rgba(2,2,16,0.25)); border:1px solid rgba(120,70,255,0.12) }
+  .theme-neon .msg.bot{ background: rgba(20,20,40,0.5); border:1px solid rgba(80,200,255,0.06); color:#cfefff }
+  .theme-neon .msg.user{ background: linear-gradient(90deg,#00ffd5,#0066ff); color:#001226; box-shadow: 0 10px 30px rgba(0,102,255,0.14) }
+  .theme-neon .send{ background: linear-gradient(90deg,#00ffd5,#6b00ff); color:#001; box-shadow:0 6px 30px rgba(107,0,255,0.12) }
+  .theme-neon .logo{ background:linear-gradient(90deg,#00ffd5,#6b00ff); color:#001 }
+
+  /* Responsive */
+  @media (max-width: 880px){
+    .wrap{grid-template-columns:1fr; padding:12px; gap:12px}
+    .left{order:2}
+    .chat-card{order:1;height:76vh}
+  }
+  </style>
+</head>
+<body class="theme-glass">
+  <div class="wrap">
+
+    <!-- LEFT: controls / theme switch -->
+    <div class="left">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <h3>Stylish Chatbot</h3>
+          <p class="small">Pick a theme — craft your UI vibe</p>
+        </div>
+      </div>
+
+      <div class="theme-row" role="tablist" aria-label="Theme selector">
+        <button class="theme-btn active" data-theme="theme-glass">Glass (Dark)</button>
+        <button class="theme-btn" data-theme="theme-neu">Neumorphism</button>
+        <button class="theme-btn" data-theme="theme-neon">Neon</button>
+      </div>
+
+      <div class="prefs">
+        <div class="row">
+          <div class="small">Model</div>
+          <div class="small">llama3-8b-8192</div>
+        </div>
+        <div class="row">
+          <div class="small">Temperature</div>
+          <div class="small">0.7</div>
+        </div>
+        <div class="row" style="border-bottom:none">
+          <div class="small">Max tokens</div>
+          <div class="small">500</div>
+        </div>
+      </div>
+
+      <p class="hint" style="margin-top:14px">Tip: Add your GROQ key to Vercel env var <code>GROQ_API_KEY</code> and redeploy.</p>
+    </div>
+
+    <!-- RIGHT: chat card -->
+    <div class="chat-card" role="application" aria-label="Chat window">
+      <div class="chat-header">
+        <div style="flex:1">
+          <h2>🤖 Chatbot</h2>
+          <div class="sub">Fast • Stylish • Easy to deploy</div>
+        </div>
+        <div class="small" id="status">Ready</div>
+      </div>
+
+      <div class="messages" id="messages" aria-live="polite">
+        <!-- initial message -->
+        <div class="msg bot">Hello! I'm your stylish assistant — ask me anything.</div>
+      </div>
+
+      <div class="input-area">
+        <textarea id="input" placeholder="Type a message and press Enter — Shift+Enter for newline"></textarea>
+        <button class="send" id="sendBtn">Send</button>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* ---------- theme switching ---------- */
+const themeButtons = document.querySelectorAll('.theme-btn');
+themeButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    // remove active
+    themeButtons.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // switch body class
+    const theme = btn.dataset.theme;
+    document.body.className = theme;
+  })
+});
+
+/* ---------- chat behavior ---------- */
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const statusEl = document.getElementById('status');
+
+function appendMessage(text, who='bot'){
+  const div = document.createElement('div');
+  div.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
+  div.innerHTML = text.replace(/\n/g, '<br>');
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight - messagesEl.clientHeight;
+  return div;
+}
+
+function setStatus(txt){
+  statusEl.textContent = txt;
+}
+
+/* send */
+async function sendMessage(){
+  const text = inputEl.value.trim();
+  if(!text) return;
+  appendMessage(text, 'user');
+  inputEl.value = '';
+  setStatus('Thinking...');
+  try{
+    // update to your domain if needed
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({message: text})
+    });
+
+    if(!res.ok){
+      // parse JSON or text
+      let err;
+      try { err = await res.json(); } catch(e){ err = {error: await res.text()}; }
+      appendMessage('⚠️ Error: ' + (err?.error || JSON.stringify(err)), 'bot');
+      setStatus('Error');
+      return;
+    }
+
+    const data = await res.json();
+    appendMessage(data.reply || 'No reply', 'bot');
+    setStatus('Ready');
+  }catch(e){
+    appendMessage('⚠️ Network error — check API endpoint and environment variables.', 'bot');
+    console.error(e);
+    setStatus('Network error');
+  }
+}
+
+/* send on click or Enter */
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault(); sendMessage();
+  }
+});
+
+/* accessibility: focus textarea on load */
+inputEl.focus();
+</script>
+</body>
+</html>
