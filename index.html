@@ -59,6 +59,7 @@
       border-radius: 6px;
       font-family: monospace;
       white-space: pre-wrap;
+      overflow-x: auto;
     }
 
     .chat-container ul {
@@ -116,17 +117,32 @@
     const form = document.getElementById("chat-form");
     const userInput = document.getElementById("user-input");
 
+    function escapeHTML(str) {
+      return str.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+    }
+
+    function formatMessage(text) {
+      let escaped = escapeHTML(text);
+
+      // Format code blocks
+      escaped = escaped.replace(/```([\s\S]*?)```/g, "<code>$1</code>");
+
+      // Format bullet lists (group continuous items into a single <ul>)
+      escaped = escaped.replace(/(?:^|\n)\* (.*?)(?=\n|$)/g, "<li>$1</li>");
+      escaped = escaped.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
+
+      // Replace double newlines with paragraph breaks
+      escaped = escaped.replace(/\n{2,}/g, "<br><br>");
+
+      return escaped;
+    }
+
     function addMessage(text, sender) {
       const msg = document.createElement("div");
       msg.classList.add("message", sender);
-
-      // Simple formatting: code blocks, bullet points, paragraphs
-      let formatted = text
-        .replace(/```([\s\S]*?)```/g, "<code>$1</code>")
-        .replace(/^\* (.*)$/gm, "<ul><li>$1</li></ul>")
-        .replace(/\n/g, "<br>");
-
-      msg.innerHTML = formatted;
+      msg.innerHTML = formatMessage(text);
       chatContainer.appendChild(msg);
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
