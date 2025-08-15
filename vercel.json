@@ -1,8 +1,8 @@
-{
-  "version": 2,
-  "routes": [
+{   
+"version": 2,   
+  "routes": 
+  [
     { "src": "/api/(.*)", "dest": "/api/$1.js" },
-    { "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg))", "dest": "/public/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
+    { "src": "/(.*)", "dest": "/index.html" }   
+  ] 
 }
